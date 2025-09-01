@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Universal Talent Tree Builder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Universal Talent Tree Builder</h1>
+      <div class="row">
+        <label class="pill">Class
+          <select id="classSelect"></select>
+        </label>
+        <span class="pill">Used Points: <strong id="totalPoints">0</strong></span>
+        <button id="resetAll">Reset All</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="trees" class="columns"></div>
+<button onclick="toggleEditor()">Edit Talent Trees</button>
+
+<div id="editor" style="display:none">
+  <h2>Talent Tree Editor</h2>
+
+  <!-- Globale Settings -->
+  <div class="class-block">
+    <h3>Globale Settings</h3>
+    <label>Default Points:
+      <input type="number" value="51" onchange="TALENT_DATA.defaultPoints=parseInt(this.value)">
+    </label>
+    <label>Points per Tier:
+      <input type="number" value="5" onchange="TALENT_DATA.pointsPerTier=parseInt(this.value)">
+    </label>
+    <label>Grid Rows:
+      <input type="number" value="10" onchange="TALENT_DATA.grid.rows=parseInt(this.value)">
+    </label>
+    <label>Grid Cols:
+      <input type="number" value="4" onchange="TALENT_DATA.grid.cols=parseInt(this.value)">
+    </label>
+  </div>
+
+  <div id="classes-container"></div>
+  <button onclick="addClass()">+ New Class</button>
+  <hr>
+  <button onclick="saveToDataJS()">Save Tree (data.js)</button>
+  <!--<input type="file" id="importFile" onchange="importData(event)">-->
+</div>
+
+<script src="editor.js"></script>
+</body>
+	</div>
+    <footer>
+      <p>This builder is data-driven. Use the editor or simply adjust the objects in the TALENT_DATA script (data.js)  (classes, trees, talents, rows/columns, prerequisites, descriptions). Right-clicking on talents deducts points. Each talent requires 5 points in the lower tiers.</p>
+	  <p>Everything runs locally on your PC! When saving the trees, the new data.js will be “downloaded.”</p>
+	  <p>It is “downloaded” because JavaScript is not allowed to write data directly to your hard drive.</p>
+	  <p>Once you have found the saved file in your downloads folder, <b>simply overwrite the file</b> in your Tree Builder folder and <b>refresh the site.</b></p>
+	  <br/><p><b>And remember: no backup, no mercy :D</b></p>
+    </footer>
+  </main>
+
+  <div id="tooltip" class="tooltip" role="dialog" aria-hidden="true"></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

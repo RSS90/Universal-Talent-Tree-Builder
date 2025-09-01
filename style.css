@@ -1,0 +1,77 @@
+:root {
+  --bg: #0b0e12;
+  --panel: #131922;
+  --panel-2: #0f141b;
+  --text: #e5ecf4;
+  --muted: #96a2b4;
+  --accent: #4cc2ff;
+  --accent-2: #9bff8c;
+  --danger: #ff6b6b;
+  --gold: #f5d76e;
+  --grid-gap: 18px;
+  --round: 16px;
+  --shadow: 0 6px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+  --cell-size: 36px;
+  --bgs: 100% 100%;
+  --shadow: inset 0 0 30px #000;
+}
+* { box-sizing: border-box }
+body { margin:0; background: var(--bg); color: var(--text); font: 14px/1.35 system-ui, -apple-system, Segoe UI, Roboto; }
+header { position: sticky; top:0; z-index:9; background: var(--panel); }
+.wrap { max-width: 948px; margin: 0 auto; padding: 18px; }
+.row { display: flex; gap: 12px; flex-wrap: wrap }
+.pill { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; background: var(--panel); border-radius: 999px; }
+/*.grid { display:grid; grid-template-columns: repeat(5, var(--cell-size)); grid-auto-rows: var(--cell-size); gap: var(--grid-gap); justify-content: center;}*/
+.cell { position:relative; border: 1px dashed rgba(255,255,255,.05); }
+.talent { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; border-radius: 14px; background: rgba(255,255,255,.06); }
+.rank { position:absolute; right:-6px; bottom:-6px; font-size:12px; background:#000; font-weight:600;}
+.locked { filter: grayscale(1) brightness(.6); }
+.tooltip { position: fixed; z-index: 99; background: #11161e; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 12px; display:none; color: #ffd100; }
+.columns { display:grid; grid-template-columns: 1fr; gap:10px }
+.talent img{width: 36px; height: 36px; border-radius: 4px; filter: none;  opacity: 1; transition: filter 0.2s, opacity 0.2s;}
+.talent.locked img {filter: grayscale(100%); opacity: 0.5;}
+.specicon{border-radius:25px; margin-right:10px; float:inline-start;}
+
+#trees {min-height:660px}
+#tooltip{max-width:320px;}
+
+/*-------------------
+Editor
+-------------------*/
+
+#editor { background:#2a2a2a; padding:20px; margin:20px; border-radius:10px; }
+
+.class-block, .tree-block, .talent-block {
+  border:1px solid #555; padding:10px; margin:10px 0; border-radius:6px; background:#333;
+}
+
+label { display:block; margin:5px 0; }
+input[type=text], input[type=number] { width: 300px; padding:3px; margin-left:5px; }
+button { margin:5px; padding:4px 10px; }
+
+.rank-list input { display:block; margin:3px 0; width:95%; }
+
+/*-------------------
+Collapsible
+-------------------*/
+.collapsible { cursor:pointer; background:#444; padding:6px; border:none; text-align:left; width:100%; color:#ddd; }
+.collapsible:after { content: " ▼"; float:right; }
+.collapsible.active:after { content: " ▲"; }
+.content { display:none; padding:5px 10px; }
+
+/*-------------------
+Default tree settings
+-------------------*/
+.tree-card- { background: var(--panel-2); border-radius: var(--round); background-image: url("icons/my-background.jpg");  background-size: var(--bgs); box-shadow: var(--shadow)}
+
+/*-------------------
+Custom tree settings
+-------------------*/
+.tree-card-mytree { background: var(--panel-2); border-radius: var(--round);  background-image: url("icons/my-background.jpg"); background-size: var(--bgs); box-shadow: var(--shadow)}
+
+/*-------------------
+Mobile
+-------------------*/
+@media(min-width:960px){ .columns{ grid-template-columns: repeat(3,1fr) } }
+
+
