@@ -1,6 +1,13 @@
 const classNames = Object.keys(TALENT_DATA.classes || {});
 const firstClass = classNames.length > 0 ? classNames[0] : null;
 
+document.addEventListener('DOMContentLoaded', function () {
+document.getElementById('dfp').value = TALENT_DATA.defaultPoints;
+document.getElementById('ppt').value = TALENT_DATA.pointsPerTier;
+document.getElementById('gr').value = TALENT_DATA.grid.rows;
+document.getElementById('gc').value = TALENT_DATA.grid.cols;
+})
+
 let state = {
   selectedClass: firstClass,
   totalCap: firstClass ? TALENT_DATA.classes[firstClass].pointsCap : 0,
@@ -43,7 +50,7 @@ function render() {
 
   cd.trees.forEach(tree => {
     const card = document.createElement('section');
-    card.className = 'tree-card-'; // optional: + tree.id für CSS
+    card.className = 'tree-card-'; // optional: + tree.id for CSS
 
     const head = document.createElement('div');
 
@@ -63,7 +70,7 @@ function render() {
     grid.style.alignContent = 'center'; 
     grid.style.gap = '18px';
 
-    // Erstelle leere Zellen
+    // Create empty cells
     for (let r = 0; r < TALENT_DATA.grid.rows; r++) {
       for (let c = 0; c < TALENT_DATA.grid.cols; c++) {
         const cell = document.createElement('div');
@@ -72,7 +79,7 @@ function render() {
       }
     }
 
-    // Platziere Talente
+    // Place Talents
     tree.talents.forEach(talent => placeTalent(grid, tree, talent));
 
     card.appendChild(head);
@@ -80,9 +87,8 @@ function render() {
     elTrees.appendChild(card);
   });
 
-  elTotal.textContent = totalSpent();
+  elTotal.textContent = totalSpent()+" / "+ TALENT_DATA.defaultPoints;
 
-  // Jetzt erst alle Talent-Sperren aktualisieren
   updateTalentStates();
 
 }
@@ -212,9 +218,18 @@ function refundPoint(treeId,talentId){
 
 function initClassSelect(){
   elClass=document.getElementById('classSelect');
-  elClass.innerHTML='';Object.keys(TALENT_DATA.classes).forEach(cls=>{const o=document.createElement('option');o.value=cls;o.textContent=cls;elClass.appendChild(o)});
+  elClass.innerHTML='';
+  Object.keys(TALENT_DATA.classes).forEach(cls=>{
+	  const o=document.createElement('option');
+	  o.value=cls;o.textContent=cls;
+	  elClass.appendChild(o)});
+	  
   elClass.value=state.selectedClass;
-  elClass.addEventListener('change',()=>{state.selectedClass=elClass.value;state.totalCap=TALENT_DATA.classes[state.selectedClass].pointsCap;state.ranks={};state.spentByTree={};render();});
+  elClass.addEventListener('change',()=>{
+	  state.selectedClass=elClass.value;state.totalCap=TALENT_DATA.classes[state.selectedClass].pointsCap;state.ranks={};
+	  state.spentByTree={};
+	  render();
+  });
 }
 
 document.getElementById('resetAll').addEventListener('click',()=>{state.ranks={};state.spentByTree={};render();});
@@ -242,7 +257,7 @@ function totalPointsInTree(treeId, klass) {
 function updateTalentStates() {
   Object.values(TALENT_DATA.classes).forEach(klass => {
     klass.trees.forEach(tree => {
-      // Punkte pro Reihe berechnen
+      // Calculate points per row
       const pointsPerRow = Array(TALENT_DATA.grid.rows).fill(0);
       tree.talents.forEach(t => {
         pointsPerRow[t.row] += state.ranks[t.id] || 0;
@@ -254,20 +269,20 @@ function updateTalentStates() {
 
         let isLocked = false;
 
-        // Tier-Sperre: erste Reihe immer freigeschaltet
+        // Tier-Lock: first row always unlocked
         if (talent.row > 0) {
           const pointsBelow = pointsPerRow.slice(0, talent.row).reduce((a, b) => a + b, 0);
           const required = talent.row * TALENT_DATA.pointsPerTier;
           if (pointsBelow < required) isLocked = true;
         }
 
-        // Abhängigkeiten prüfen
+        // Check dependencies
         if (talent.requires) {
           const reqRank = state.ranks[talent.requires.talentId] || 0;
           if (reqRank < (talent.requires.rank || 1)) isLocked = true;
         }
 
-        // CSS setzen
+        // Set CSS
         if (isLocked) wrap.classList.add("locked");
         else wrap.classList.remove("locked");
       });
