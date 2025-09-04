@@ -1,7 +1,3 @@
-// ----------------------
-// Editor.js (English) - Fixed Add Tree Dropdown
-// ----------------------
-
 // --- Toggle Editor Visibility ---
 function toggleEditor() {
   const editor = document.getElementById('editor');
@@ -69,7 +65,7 @@ function renderEditor() {
     const pointsInput = contentDiv.querySelector('input[type=number]');
     pointsInput.addEventListener('change', e => clsData.pointsCap = parseInt(e.target.value));
 
-    // Live rename class
+    // --- Live rename class ---
     const classButton = div.querySelector('.collapsible');
     const classNameInput = document.createElement('input');
     classNameInput.type = 'text';
@@ -83,17 +79,17 @@ function renderEditor() {
         delete TALENT_DATA.classes[oldName];
       }
     });
-    contentDiv.prepend(classNameInput);
+    contentDiv.prepend("Class Name: ", classNameInput);
 
-    contentDiv.querySelector('.delete-class').addEventListener('click', () => deleteClass(clsName));
+    contentDiv.querySelector('.delete-class').addEventListener('click', () => deleteClass(clsName, div));
 
-    // Add Tree button - prevent dropdown from closing
+    // --- Add Tree button ---
     contentDiv.querySelector('.add-tree').addEventListener('click', e => {
-      e.stopPropagation(); // prevent collapsible toggle
+      e.stopPropagation();
       addTree(clsName);
     });
 
-    // Render Trees
+    // --- Render Trees ---
     const treesDiv = contentDiv.querySelector('.trees');
     clsData.trees.forEach((tree, ti) => renderTree(clsName, tree, ti, treesDiv));
   });
@@ -124,15 +120,17 @@ function renderTree(clsName, tree, ti, container) {
   const inputs = content.querySelectorAll('input');
   inputs[0].addEventListener('input', e => { 
     tree.name = e.target.value; 
-    tdiv.querySelector('.collapsible').textContent = tree.name; 
+    tdiv.querySelector('.collapsible').textContent = `${tree.name} (${tree.id})`; 
   });
   inputs[1].addEventListener('change', e => tree.id = e.target.value);
   inputs[2].addEventListener('change', e => tree.ico = e.target.value);
   inputs[3].addEventListener('change', e => tree.pointsCap = parseInt(e.target.value));
 
-  content.querySelector('.delete-tree').addEventListener('click', () => deleteTree(clsName, ti));
+  content.querySelector('.delete-tree').addEventListener('click', () => {
+    const ti = Array.from(container.children).indexOf(tdiv);
+    deleteTree(clsName, ti, tdiv);
+  });
 
-  // Add Talent button
   content.querySelector('.add-talent').addEventListener('click', e => {
     e.stopPropagation();
     addTalent(clsName, ti, content.querySelector('.talents'));
@@ -151,7 +149,7 @@ function renderTalent(clsName, ti, tal, idx, container) {
   talDiv.innerHTML = `
     <button class="collapsible">${tal.name}</button>
     <div class="content">
-      <label>Name: <input type="text" value="${tal.name}"></label>
+      <label>Talent Name: <input type="text" value="${tal.name}"></label>
       <label>ID: <input type="text" value="${tal.id}"></label>
       <label>Icon: <input type="text" value="${tal.icon}"></label>
       <label>Row: <input type="number" value="${tal.row}"></label>
@@ -176,28 +174,49 @@ function renderTalent(clsName, ti, tal, idx, container) {
   inputs[4].addEventListener('change', e => tal.col = parseInt(e.target.value));
   inputs[5].addEventListener('change', e => tal.maxRank = parseInt(e.target.value));
 
-  // Ranks
+  // --- Render Ranks ---
   const rankList = content.querySelector('.rank-list');
-  tal.ranksDesc.forEach((rd, i) => {
-    const rdDiv = document.createElement('div');
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = rd;
-    input.addEventListener('change', e => tal.ranksDesc[i] = e.target.value);
-    const delBtn = document.createElement('button');
-    delBtn.textContent = '❌';
-    delBtn.addEventListener('click', () => deleteRank(clsName, ti, idx, i));
-    rdDiv.appendChild(input);
-    rdDiv.appendChild(delBtn);
-    rankList.appendChild(rdDiv);
+  tal.ranksDesc.forEach((rd) => {
+    renderRank(clsName, ti, idx, rd, rankList, tal);
   });
 
   content.querySelector('.add-rank').addEventListener('click', e => {
     e.stopPropagation();
     addRankDesc(clsName, ti, idx, rankList);
   });
-  content.querySelector('.delete-talent').addEventListener('click', () => deleteTalent(clsName, ti, idx));
+
+  content.querySelector('.delete-talent').addEventListener('click', () => {
+    const idx = Array.from(container.children).indexOf(talDiv);
+    deleteTalent(clsName, ti, idx, talDiv);
+  });
+
   initCollapsiblesFor(talDiv);
+}
+
+// --- Render Rank ---
+function renderRank(clsName, ti, idx, rd, container, tal) {
+  const rdDiv = document.createElement('div');
+  const input = document.createElement('input');
+  const label = document.createElement('label');
+  input.type = 'text';
+  input.value = rd;
+  label.innerText = 'Rank Description:';
+  input.addEventListener('change', e => {
+    const ri = Array.from(container.children).indexOf(rdDiv);
+    tal.ranksDesc[ri] = e.target.value;
+  });
+
+  const delBtn = document.createElement('button');
+  delBtn.textContent = '❌';
+  delBtn.addEventListener('click', () => {
+    const ri = Array.from(container.children).indexOf(rdDiv);
+    deleteRank(clsName, ti, idx, ri, rdDiv, container);
+  });
+
+  rdDiv.appendChild(label);
+  rdDiv.appendChild(input);
+  rdDiv.appendChild(delBtn);
+  container.appendChild(rdDiv);
 }
 
 // --- CRUD / Add / Delete functions ---
@@ -207,8 +226,16 @@ function addClass() {
   while(TALENT_DATA.classes[newName]) newName = 'NewClass' + counter++;
   TALENT_DATA.classes[newName] = { pointsCap: 51, trees: [] };
   renderEditor();
+  initClassSelect();
 }
-function deleteClass(clsName) { delete TALENT_DATA.classes[clsName]; renderEditor(); }
+
+function deleteClass(clsName, classDiv) {
+  if (!confirm("Delete Class?")) return;
+  delete TALENT_DATA.classes[clsName];
+  classDiv.remove();
+  initClassSelect();
+}
+
 function addTree(clsName) {
   const tree = { id:'new-tree', name:'New Tree', ico:'', pointsCap:0, talents:[] };
   const clsData = TALENT_DATA.classes[clsName];
@@ -216,32 +243,38 @@ function addTree(clsName) {
   const classBlock = getClassBlock(clsName);
   if(classBlock) renderTree(clsName, tree, clsData.trees.length-1, classBlock.querySelector('.trees'));
 }
-function deleteTree(clsName, ti) { TALENT_DATA.classes[clsName].trees.splice(ti,1); renderEditor(); }
+
+function deleteTree(clsName, ti, treeDiv) {
+  if (!confirm("Delete Talent Tree?")) return;
+  TALENT_DATA.classes[clsName].trees.splice(ti,1);
+  treeDiv.remove();
+}
+
 function addTalent(clsName, ti, container) {
   const tal = { id:'new-talent', name:'New Talent', icon:'', row:0, col:0, maxRank:1, ranksDesc:['New Description'] };
   const tree = TALENT_DATA.classes[clsName].trees[ti];
   tree.talents.push(tal);
   renderTalent(clsName, ti, tal, tree.talents.length-1, container);
 }
-function deleteTalent(clsName, ti, idx) { TALENT_DATA.classes[clsName].trees[ti].talents.splice(idx,1); renderEditor(); }
+
+function deleteTalent(clsName, ti, idx, talentDiv) { 
+  if (!confirm("Delete Talent?")) return;
+  TALENT_DATA.classes[clsName].trees[ti].talents.splice(idx,1);
+  talentDiv.remove();
+}
+
 function addRankDesc(clsName, ti, idx, container) {
   const tal = TALENT_DATA.classes[clsName].trees[ti].talents[idx];
   tal.ranksDesc.push('New Rank Description');
-  const rdDiv = document.createElement('div');
-  const input = document.createElement('input');
-  input.type='text';
-  input.value='New Rank Description';
-  input.addEventListener('change', e => tal.ranksDesc[tal.ranksDesc.length-1] = e.target.value);
-  const delBtn = document.createElement('button');
-  delBtn.textContent='❌';
-  delBtn.addEventListener('click', () => deleteRank(clsName, ti, idx, tal.ranksDesc.length-1));
-  rdDiv.appendChild(input);
-  rdDiv.appendChild(delBtn);
-  container.appendChild(rdDiv);
+  renderRank(clsName, ti, idx, 'New Rank Description', container, tal);
 }
-function deleteRank(clsName, ti, idx, ri) { TALENT_DATA.classes[clsName].trees[ti].talents[idx].ranksDesc.splice(ri,1); renderEditor(); }
 
-// --- Save / Import ---
+function deleteRank(clsName, ti, idx, ri, rdDiv, container) { 
+  TALENT_DATA.classes[clsName].trees[ti].talents[idx].ranksDesc.splice(ri,1); 
+  rdDiv.remove();
+}
+
+// --- Save JS ---
 function saveToDataJS() {
   const jsCode = "var TALENT_DATA = " + JSON.stringify(TALENT_DATA,null,2) + ";";
   const blob = new Blob([jsCode], {type:'application/javascript'});
@@ -250,9 +283,45 @@ function saveToDataJS() {
   a.download = "data.js";
   a.click();
 }
-function importData(event) {
-  const file = event.target.files[0];
+// --- Save JSON ---
+function saveToJSON() {
+  const json = JSON.stringify(TALENT_DATA, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = "talent_data.json";
+  a.click();
+}
+
+
+// --- Import JSON ---
+function importDataJSON(file) {
   const reader = new FileReader();
-  reader.onload = e => { TALENT_DATA = JSON.parse(e.target.result); renderEditor(); };
+  reader.onload = e => {
+    try {
+      const jsonData = JSON.parse(e.target.result);
+
+      if (jsonData.classes && jsonData.grid) {
+        TALENT_DATA = jsonData;
+        renderEditor();
+        alert("JSON loaded successfully!");
+		initClassSelect();
+      } else {
+        alert("Invalid JSON format!");
+      }
+    } catch (err) {
+      alert("Error loading JSON file: " + err.message);
+    }
+  };
   reader.readAsText(file);
 }
+
+document.getElementById("importBtn").addEventListener("click", () => {
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change", e => {
+  if (e.target.files.length > 0) {
+    importDataJSON(e.target.files[0]);
+  }
+});
+
